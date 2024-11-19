@@ -119,7 +119,7 @@ class StreamlitApp:
                 <h3 style='color: #00ff00;'>Resources:</h3>
                 <ul style='color: #ffffff;'>
                     <li>🔗 <a href='https://github.com/Aman-Vishwakarma1729/Birds-vs-Drones-Detection-and-Tracking-System' style='color: #00ff00;'>GitHub Repository</a></li>
-                    <li>📊 <a href='' style='color: #00ff00;'>Trial Dataset</a></li>
+                    <li>📊 <a href='https://github.com/Aman-Vishwakarma1729/Birds-vs-Drones-Detection-and-Tracking-System/tree/main/trial_data' style='color: #00ff00;'>Trial Dataset</a></li>
                 </ul>
             </div>
             """,
@@ -133,7 +133,7 @@ class StreamlitApp:
             <div style='background-color: rgba(0, 0, 0, 0.7); padding: 20px; border-radius: 10px;'>
                 <h2 style='color: #00ff00;'>About the Project</h2>
                 <p style='color: #ffffff;'>
-                    The EDITH Defense System is designed to enhance security and surveillance capabilities by accurately 
+                    The System is designed to enhance security and surveillance capabilities by accurately 
                     detecting and tracking both birds and drones. Using the lightweight YOLOv8 nano model, it provides 
                     efficient and real-time object detection while maintaining high accuracy.
                 </p>

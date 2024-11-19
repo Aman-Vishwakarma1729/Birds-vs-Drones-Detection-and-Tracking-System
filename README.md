@@ -82,6 +82,55 @@ birds_vs_drones_detection_and_tracking/
 - **requirements.txt**: Python dependencies
 - **.gitignore**: Git ignore patterns
 
+## 🔧 Installation and Setup
+
+1. Clone the repository:
+```bash
+git clone https://github.com/Aman-Vishwakarma1729/Birds-vs-Drones-Detection-and-Tracking-System.git
+cd Birds-vs-Drones-Detection-and-Tracking-System
+```
+
+2. Create and activate a virtual environment:
+```bash
+python -m venv .venv
+.venv\Scripts\activate  # Windows
+source .venv/bin/activate  # Linux/Mac
+```
+
+3. Install the package in development mode:
+```bash
+pip install -e .
+```
+
+4. Set up environment variables:
+Create a `.env` file in the project root with your Roboflow API key:
+```
+ROBOFLOW_API_KEY=your_api_key_here
+```
+
+5. Download and setup the dataset:
+```bash
+python -m src.components.download_dataset
+```
+This will:
+- Download the dataset from Roboflow
+- Rename the downloaded folder to 'data'
+- Update data.yaml with correct paths
+- Create necessary directory structure:
+  ```
+  data/
+  ├── data.yaml          # Dataset configuration
+  ├── train/
+  │   ├── images/       # Training images
+  │   └── labels/       # Training labels
+  ├── valid/
+  │   ├── images/       # Validation images
+  │   └── labels/       # Validation labels
+  └── test/
+      ├── images/       # Test images
+      └── labels/       # Test labels
+  ```
+
 ## 🔧 Component Details
 
 ### Core Components

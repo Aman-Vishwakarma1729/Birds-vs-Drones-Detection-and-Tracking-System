@@ -29,34 +29,43 @@ class DataAugmentation:
             
             data_logger.info(f"Initialized DataAugmentation with data_dir: {data_dir}, output_dir: {output_dir}")
             
-            # Define augmentation pipeline with correct transformation names
+            # Define augmentation pipeline with aerial imagery specific transformations
             self.transform = A.Compose([
-                # Color augmentations
+                # Color augmentations for different lighting conditions
                 A.OneOf([
-                    A.ColorJitter(brightness=0.2, contrast=0.2, p=0.5),
-                    A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.5),
+                    A.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1, p=0.5),
+                    A.RandomBrightnessContrast(brightness_limit=0.3, contrast_limit=0.3, p=0.5),
                     A.CLAHE(clip_limit=4.0, tile_grid_size=(8, 8), p=0.5),
-                ], p=0.5),
+                ], p=0.8),
                 
-                # Noise and blur for different weather conditions
+                # Noise and blur for different weather and atmospheric conditions
                 A.OneOf([
                     A.GaussNoise(var_limit=(10.0, 50.0), p=0.5),
-                    A.Blur(blur_limit=(3, 7), p=0.5),
+                    A.GaussianBlur(blur_limit=(3, 7), p=0.5),
                     A.MotionBlur(blur_limit=(3, 7), p=0.5),
+                    A.MedianBlur(blur_limit=5, p=0.5),
                 ], p=0.5),
                 
-                # Geometric transformations
+                # Geometric transformations for different viewing angles
                 A.OneOf([
-                    A.ShiftScaleRotate(shift_limit=0.1, scale_limit=0.2, rotate_limit=30, p=0.5),
-                    A.Affine(scale=(0.8, 1.2), translate_percent=(-0.1, 0.1), rotate=(-30, 30), p=0.5),
-                ], p=0.5),
+                    A.ShiftScaleRotate(shift_limit=0.1, scale_limit=0.2, rotate_limit=45, p=0.5),
+                    A.Affine(scale=(0.8, 1.2), translate_percent=(-0.2, 0.2), rotate=(-45, 45), shear=(-10, 10), p=0.5),
+                ], p=0.8),
                 
-                # Weather and lighting effects
+                # Weather and atmospheric effects
                 A.OneOf([
                     A.RandomFog(fog_coef_lower=0.1, fog_coef_upper=0.3, p=0.5),
-                    A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.5),
+                    A.RandomSunFlare(flare_roi=(0, 0, 1, 0.5), angle_lower=0, angle_upper=1, num_flare_circles_lower=6, num_flare_circles_upper=10, p=0.3),
+                    A.RandomShadow(shadow_roi=(0, 0.5, 1, 1), num_shadows_lower=1, num_shadows_upper=3, p=0.3),
+                    A.RandomRain(slant_lower=-10, slant_upper=10, drop_length=20, drop_width=1, drop_color=(200, 200, 200), p=0.3),
+                ], p=0.5),
+                
+                # Additional transformations for robustness
+                A.OneOf([
+                    A.RandomGamma(gamma_limit=(80, 120), p=0.5),
                     A.HueSaturationValue(hue_shift_limit=20, sat_shift_limit=30, val_shift_limit=20, p=0.5),
-                ], p=0.3),
+                    A.RGBShift(r_shift_limit=20, g_shift_limit=20, b_shift_limit=20, p=0.5),
+                ], p=0.5),
             ], bbox_params=A.BboxParams(format='yolo', label_fields=['class_labels']))
             
         except Exception as e:
@@ -125,35 +134,66 @@ class DataAugmentation:
     def process_dataset(self):
         """Process entire dataset"""
         try:
+            total_images = 0
+            processed_images = 0
+            
+            # Count total images first
             for split in ['train', 'test', 'valid']:
-                data_logger.info(f"\nProcessing {split} split...")
                 image_dir = self.data_dir / split / 'images'
-                label_dir = self.data_dir / split / 'labels'
-                
-                if not image_dir.exists():
-                    data_logger.warning(f"Warning: {image_dir} does not exist, skipping...")
-                    continue
-                
-                image_files = list(image_dir.glob('*.jpg')) + list(image_dir.glob('*.png'))
-                for image_path in tqdm(image_files, desc=f"Augmenting {split} images"):
-                    label_path = label_dir / f"{image_path.stem}.txt"
-                    self.process_image_and_label(image_path, label_path, split)
+                if image_dir.exists():
+                    total_images += len(list(image_dir.glob('*.jpg')) + list(image_dir.glob('*.png')))
+            
+            # Process each split
+            with tqdm(total=total_images, desc="Overall Progress") as pbar:
+                for split in ['train', 'test', 'valid']:
+                    data_logger.info(f"\nProcessing {split} split...")
+                    image_dir = self.data_dir / split / 'images'
+                    label_dir = self.data_dir / split / 'labels'
+                    
+                    if not image_dir.exists():
+                        data_logger.warning(f"Warning: {image_dir} does not exist, skipping...")
+                        continue
+                    
+                    image_files = list(image_dir.glob('*.jpg')) + list(image_dir.glob('*.png'))
+                    for image_path in image_files:
+                        label_path = label_dir / f"{image_path.stem}.txt"
+                        self.process_image_and_label(image_path, label_path, split)
+                        processed_images += 1
+                        pbar.update(1)
+            
+            data_logger.info(f"\nProcessed {processed_images} images successfully")
         
         except Exception as e:
             data_logger.error(f"Error in dataset processing: {str(e)}")
             raise DataException(e, sys)
 
 def main():
-    # Define paths
-    data_dir = Path("D:/External_Projects/Edith_Defene_System/birds_vs_drones_detection_and_tracking_version-0.0.1/data")
-    output_dir = Path("D:/External_Projects/Edith_Defene_System/birds_vs_drones_detection_and_tracking_version-0.0.1/augmented_data")
-    
-    # Create and run augmentation pipeline
-    augmenter = DataAugmentation(data_dir, output_dir)
-    augmenter.process_dataset()
-    
-    data_logger.info("\nData augmentation completed!")
-    data_logger.info(f"Augmented dataset saved to: {output_dir}")
+    try:
+        # Get the project root directory (2 levels up from this file)
+        project_root = Path(__file__).parent.parent.parent
+        
+        # Define paths relative to project root
+        data_dir = project_root / "data"
+        output_dir = project_root / "augmented_data"
+        
+        # Validate directories
+        if not data_dir.exists():
+            raise DataException(f"Data directory not found: {data_dir}", sys)
+        
+        data_logger.info(f"Starting data augmentation pipeline...")
+        data_logger.info(f"Data directory: {data_dir}")
+        data_logger.info(f"Output directory: {output_dir}")
+        
+        # Create and run augmentation pipeline
+        augmenter = DataAugmentation(data_dir, output_dir)
+        augmenter.process_dataset()
+        
+        data_logger.info("\nData augmentation completed successfully!")
+        data_logger.info(f"Augmented dataset saved to: {output_dir}")
+        
+    except Exception as e:
+        data_logger.error(f"Error in main: {str(e)}")
+        raise DataException(e, sys)
 
 if __name__ == "__main__":
     main()

@@ -139,8 +139,19 @@ def main():
         project_root = Path(__file__).parent.parent.parent
         
         # Define paths relative to project root
-        model_path = r"D:\External_Projects\Edith_Defene_System\birds_vs_drones_detection_and_tracking_version-0.0.1\runs\train\yolov8n_birds_drones\weights\best.pt"
-        data_yaml_path = r"D:\External_Projects\Edith_Defene_System\birds_vs_drones_detection_and_tracking_version-0.0.1\data\data.yaml"
+        model_path = project_root / "runs" / "train" / "yolov8n_birds_drones" / "weights" / "best.pt"
+        model_path = str(model_path)
+        data_yaml_path = project_root / "data" / "data.yaml"
+        data_yaml_path = str(data_yaml_path)
+
+        # Validate directories
+        if not model_path.exists():
+            raise ValidationException(f"Model path does not exist: {model_path}", sys)
+        if not data_yaml_path.exists():
+            raise ValidationException(f"Data YAML path does not exist: {data_yaml_path}", sys)
+        
+        # Initialize evaluator
+        data_yaml_path = str(data_yaml_path)
         
         evaluator = ModelEvaluator(model_path, data_yaml_path)
         
