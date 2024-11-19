@@ -1,0 +1,4 @@
+.venv/
+data/
+augmented_data/
+logs/

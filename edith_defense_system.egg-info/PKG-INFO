@@ -1,0 +1,11 @@
+Metadata-Version: 2.1
+Name: edith_defense_system
+Version: 0.0.1
+Requires-Dist: ultralytics
+Requires-Dist: numpy
+Requires-Dist: matplotlib
+Requires-Dist: pandas
+Requires-Dist: opencv-python
+Requires-Dist: streamlit
+Requires-Dist: albumentations
+Requires-Dist: python-dotenv
